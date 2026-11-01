@@ -1,0 +1,38 @@
+{
+  "name": "Clínica Dental Atlántica",
+  "city": "Vigo",
+  "address": "Rúa do Príncipe 22, 2º, 36202 Vigo",
+  "agent_name": "Lucía",
+  "tone": "Castellano peninsular, cercano y profesional. Tutea salvo que el paciente use usted. Frases cortas, como por WhatsApp. Nada de emojis en exceso (máx. 1).",
+  "privacy_url": "http://localhost:8000/privacidad",
+  "opening_hours": {
+    "mon": ["09:30", "14:00", "16:00", "20:00"],
+    "tue": ["09:30", "14:00", "16:00", "20:00"],
+    "wed": ["09:30", "14:00", "16:00", "20:00"],
+    "thu": ["09:30", "14:00", "16:00", "20:00"],
+    "fri": ["09:30", "15:00"],
+    "sat": [],
+    "sun": []
+  },
+  "services": [
+    {"id": "limpieza", "name": "Limpieza dental", "duration_min": 45, "price_eur": 60, "deposit_eur": 0},
+    {"id": "primera_visita", "name": "Primera visita + revisión + radiografía", "duration_min": 30, "price_eur": 0, "deposit_eur": 0},
+    {"id": "blanqueamiento", "name": "Blanqueamiento LED", "duration_min": 75, "price_eur": 290, "deposit_eur": 50},
+    {"id": "ortodoncia_invisible", "name": "Valoración ortodoncia invisible", "duration_min": 45, "price_eur": 0, "deposit_eur": 30},
+    {"id": "implante", "name": "Valoración implante", "duration_min": 30, "price_eur": 0, "deposit_eur": 0}
+  ],
+  "payment": {
+    "method": "Bizum",
+    "note": "La señal se paga por Bizum y se descuenta del tratamiento. Si cancelas con más de 24 h, se devuelve."
+  },
+  "faq": [
+    "Financiación sin intereses hasta 12 meses en tratamientos de más de 600 €.",
+    "Aparcamiento: parking público de Vía Norte a 3 minutos.",
+    "Trabajamos con Sanitas, Adeslas y DKV (consultar coberturas)."
+  ],
+  "escalation_rules": [
+    "Dolor fuerte, sangrado, inflamación o fiebre: derivar a humano y recomendar llamar al 986 000 000.",
+    "Quejas, reclamaciones o temas de facturación: derivar a humano.",
+    "Preguntas clínicas concretas sobre diagnóstico o medicación: derivar a humano; el agente no da consejo médico."
+  ]
+}

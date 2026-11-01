@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Simulador · Senda{% endblock %}
+{% block nav_sim %}on{% endblock %}
+{% block head %}
+<style>
+.wrap{display:grid;grid-template-columns:minmax(320px,420px) 1fr;gap:20px;padding:20px 24px;max-width:1200px;margin:0 auto}
+@media (max-width:860px){.wrap{grid-template-columns:1fr;padding:16px}}
+.phone{background:var(--wa-bg);border-radius:22px;border:1px solid var(--line);display:flex;flex-direction:column;height:calc(100vh - 120px);min-height:560px;overflow:hidden}
+.phead{background:var(--azul);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--verde);display:grid;place-items:center;font-weight:700}
+.msgs{flex:1;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:6px}
+.b{max-width:82%;padding:7px 10px 5px;border-radius:10px;box-shadow:0 1px 0 rgba(0,0,0,.06);white-space:pre-wrap;word-wrap:break-word}
+.b.in{align-self:flex-end;background:var(--wa-out)}
+.b.out{align-self:flex-start;background:var(--wa-in)}
+.b .meta{display:flex;gap:6px;justify-content:flex-end;align-items:center;font-size:11px;color:var(--muted);margin-top:2px;flex-wrap:wrap}
+.b .tr{font-size:12px;color:var(--muted);font-style:italic;border-left:3px solid var(--verde);padding-left:6px;margin-top:4px}
+.day{align-self:center;background:var(--surface);color:var(--muted);font-size:11px;padding:3px 10px;border-radius:8px;margin:6px 0}
+.compose{display:flex;gap:6px;padding:8px;background:var(--surface);border-top:1px solid var(--line);align-items:center}
+.compose input[type=text]{flex:1;border-radius:20px}
+.icon{width:38px;height:38px;border-radius:50%;padding:0;display:grid;place-items:center;flex:none}
+.icon.rec{background:var(--bad);color:#fff;border-color:var(--bad)}
+.side{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.typing{align-self:flex-start;background:var(--wa-in);padding:6px 12px;border-radius:10px;color:var(--muted);font-size:12px}
+.script button{font-size:12px;padding:6px 10px;text-align:left}
+</style>
+{% endblock %}
+{% block body %}
+<div class="wrap">
+  <section class="phone">
+    <div class="phead"><div class="avatar">{{ business.agent_name[0] }}</div>
+      <div><b>{{ business.name }}</b><div style="font-size:12px;opacity:.85">Cuenta de empresa · atendido por Senda</div></div>
+      <span id="clock" style="margin-left:auto;font-size:12px;opacity:.9"></span></div>
+    <div class="msgs" id="msgs"></div>
+    <form class="compose" id="f" onsubmit="return sendText(event)">
+      <label class="btn icon" title="Enviar foto">📷<input id="img" type="file" accept="image/*" hidden onchange="sendImage(this)"></label>
+      <input id="txt" type="text" placeholder="Escribe un mensaje" autocomplete="off">
+      <button type="button" class="icon" id="mic" title="Mantén pulsado para grabar nota de voz">🎤</button>
+      <button class="icon primary" title="Enviar">➤</button>
+    </form>
+  </section>
+
+  <section class="side">
+    <div class="card">
+      <h3 style="font-size:16px;margin-bottom:10px">Cliente simulado</h3>
+      <div class="row">
+        <input id="waid" value="34600111222" style="width:150px" title="Teléfono (wa_id)">
+        <input id="name" value="Carlos" style="width:130px" title="Nombre de perfil">
+        <button onclick="newClient()">Nuevo cliente</button>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <span class="chip" id="st-consent">consentimiento: —</span>
+        <span class="chip" id="st-stage">etapa: —</span>
+        <span class="chip" id="st-status">estado: —</span>
+        <span class="chip" id="st-window">ventana 24 h: —</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:16px;margin-bottom:6px">Máquina del tiempo (demo)</h3>
+      <p class="muted" style="margin:0 0 10px">Adelanta el reloj del sistema y ejecuta los seguimientos que tocan. Respeta horario 09–21 h y domingos.</p>
+      <div class="row">
+        <button class="blue" onclick="advance(24)">+24 h</button>
+        <button class="blue" onclick="advance(72)">+72 h</button>
+        <button onclick="advance(168)">+7 días</button>
+        <button onclick="advance(2)">+2 h</button>
+        <button onclick="resetAll()" style="margin-left:auto">Reiniciar demo</button>
+      </div>
+      <div id="fups" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card script">
+      <h3 style="font-size:16px;margin-bottom:8px">Guion de la demo</h3>
+      <div class="row">
+        <button onclick="say('Hola, ¿tenéis hueco esta semana para un blanqueamiento?')">1 · Pide blanqueamiento</button>
+        <button onclick="say('SÍ')">2 · Acepta seguimiento</button>
+        <button onclick="say('Me va bien la primera')">3 · Elige hueco</button>
+        <button onclick="say('Ahora no puedo pagar, cobro el 15')">4 · Objeción de pago</button>
+        <button onclick="say('Tengo mucho dolor en una muela')">Urgencia → humano</button>
+        <button onclick="say('BAJA')">BAJA</button>
+      </div>
+      <p class="muted" style="margin:10px 0 0;font-size:12px">También puedes grabar un audio real con 🎤 (se transcribe con Muse Voice Transcribe) o enviar una foto 📷 (Muse Spark visión).</p>
+    </div>
+  </section>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const tok=new URLSearchParams(location.search).get('token');
+const H=tok?{'x-senda-token':tok}:{};
+let lastCount=-1;
+function esc(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+function linkify(s){return esc(s).replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>').replace(/\*([^*]+)\*/g,'<b>$1</b>')}
+function costTag(m){
+  if(m.direction==='in') return '';
+  if(m.pricing_category==='service') return '<span class="chip ok">gratis · ventana 24 h</span>';
+  return `<span class="chip warn">plantilla ${m.pricing_category} · ${Number(m.cost_eur).toFixed(4)} €</span>`;
+}
+const ORIG={agent:'agente',followup:'seguimiento',gdpr:'RGPD',payment:'pago',reminder:'recordatorio',human:'humano'};
+async function post(url,data){const fd=new FormData();for(const k in data)fd.append(k,data[k]);return fetch(url,{method:'POST',body:fd,headers:H})}
+async function load(){
+  const r=await fetch(`/api/sim/${$('#waid').value}/messages`,{headers:H}); const d=await r.json();
+  const box=$('#msgs'); let html='',lastDay='';
+  for(const m of d.messages){
+    const dt=new Date(m.created_at); const day=dt.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',timeZone:'Europe/Madrid'});
+    if(day!==lastDay){html+=`<div class="day">${day}</div>`;lastDay=day}
+    const t=dt.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'});
+    let body=m.kind==='audio'?'🎤 Nota de voz':m.kind==='image'?'📷 Foto'+(m.body?'\n'+esc(m.body):''):linkify(m.body);
+    if(m.kind==='image'||m.kind==='audio'){}
+    const tr=m.transcript?`<div class="tr">Transcripción: ${esc(m.transcript)}</div>`:'';
+    const orig=m.direction==='out'&&m.origin&&m.origin!=='agent'?`<span class="chip gold">${ORIG[m.origin]||m.origin}</span>`:'';
+    html+=`<div class="b ${m.direction}">${body}${tr}<div class="meta">${orig}${costTag(m)}<span>${t}</span></div></div>`;
+  }
+  if(d.typing) html+='<div class="typing">escribiendo…</div>';
+  box.innerHTML=html||'<div class="day">Escribe como si fueras un paciente</div>';
+  if(d.messages.length!==lastCount){box.scrollTop=box.scrollHeight;lastCount=d.messages.length}
+  const c=d.contact;
+  const cls={granted:'ok',requested:'warn',revoked:'bad',denied:'bad'};
+  $('#st-consent').className='chip '+(c?cls[c.consent_state]||'':''); $('#st-consent').textContent='consentimiento: '+(c?c.consent_state:'—');
+  $('#st-stage').textContent='etapa: '+(c?c.stage:'—'); $('#st-status').textContent='estado: '+(c?c.status:'—');
+  $('#fups').innerHTML=(d.followups||[]).length?'<b style="font-size:13px">Seguimientos programados</b><br>'+d.followups.map(f=>
+    `<span class="chip" style="margin:4px 4px 0 0">${f.sequence} #${f.step} · ${new Date(f.due_at).toLocaleString('es-ES',{weekday:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'})}</span>`).join(''):'<span class="muted" style="font-size:12px">Sin seguimientos programados</span>';
+  if(c&&c.last_inbound_at){const h=(Date.now()+window.__off-new Date(c.last_inbound_at))/36e5;
+    $('#st-window').className='chip '+(h<24?'ok':'warn'); $('#st-window').textContent=h<24?`ventana abierta (${(24-h).toFixed(1)} h)`:'ventana cerrada → plantilla de pago'}
+}
+window.__off=0;
+async function health(){const h=await (await fetch('/health')).json(); window.__off=new Date(h.clock)-Date.now();
+  $('#clock').textContent=new Date(h.clock).toLocaleString('es-ES',{weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'})}
+async function say(text){await post('/api/sim/inbound',{wa_id:$('#waid').value,name:$('#name').value,text});setTimeout(load,300)}
+function sendText(e){e.preventDefault();const t=$('#txt').value.trim();if(t){say(t);$('#txt').value=''}return false}
+async function sendImage(inp){const f=inp.files[0];if(!f)return;const fd=new FormData();fd.append('wa_id',$('#waid').value);fd.append('name',$('#name').value);
+  fd.append('image',f);fd.append('text',$('#txt').value);$('#txt').value='';await fetch('/api/sim/inbound',{method:'POST',body:fd,headers:H});inp.value=''}
+async function advance(h){await post('/api/demo/advance',{hours:h});health();load()}
+async function resetAll(){if(confirm('¿Borrar todos los datos de la demo?')){await fetch('/api/demo/reset',{method:'POST',headers:H});lastCount=-1;health();load()}}
+function newClient(){$('#waid').value='346'+Math.floor(10000000+Math.random()*89999999);lastCount=-1;load()}
+// --- grabación de voz
+let rec,chunks=[];
+const mic=$('#mic');
+async function startRec(){try{const s=await navigator.mediaDevices.getUserMedia({audio:true});rec=new MediaRecorder(s);chunks=[];
+  rec.ondataavailable=e=>chunks.push(e.data);rec.onstop=async()=>{s.getTracks().forEach(t=>t.stop());const blob=new Blob(chunks,{type:rec.mimeType});
+  const fd=new FormData();fd.append('wa_id',$('#waid').value);fd.append('name',$('#name').value);fd.append('audio',blob,'nota.webm');
+  await fetch('/api/sim/inbound',{method:'POST',body:fd,headers:H})};rec.start();mic.classList.add('rec')}catch(e){alert('Micrófono no disponible: '+e)}}
+function stopRec(){if(rec&&rec.state==='recording'){rec.stop();mic.classList.remove('rec')}}
+mic.addEventListener('mousedown',startRec);mic.addEventListener('mouseup',stopRec);mic.addEventListener('mouseleave',stopRec);
+mic.addEventListener('touchstart',e=>{e.preventDefault();startRec()});mic.addEventListener('touchend',stopRec);
+health();load();setInterval(load,1500);setInterval(health,10000);
+</script>
+{% endblock %}

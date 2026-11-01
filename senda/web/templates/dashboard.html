@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Panel · Senda{% endblock %}
+{% block nav_dash %}on{% endblock %}
+{% block head %}
+<style>
+main{padding:20px 24px;max-width:1320px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+@media (max-width:700px){main{padding:16px}}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media (max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi .v{font-size:28px;font-weight:700;font-family:Lora,serif;line-height:1.1;margin-top:4px}
+.kpi .l{color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.kpi .s{color:var(--muted);font-size:12px;margin-top:4px}
+.kpi.hero{background:linear-gradient(135deg,var(--verde),var(--azul));color:#fff;border:0}
+.kpi.hero .l,.kpi.hero .s{color:rgba(255,255,255,.85)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:1000px){.grid2{grid-template-columns:1fr}}
+.sec h3{font-size:17px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.ev-granted{color:var(--ok)} .ev-revoked,.ev-denied,.ev-erased{color:var(--bad)} .ev-requested{color:var(--warn)}
+.tool{display:inline-block;margin:2px 4px 2px 0;font-family:ui-monospace,monospace;font-size:11px;background:var(--chip);padding:1px 6px;border-radius:6px}
+.alert{border-left:4px solid var(--bad)}
+.funnel{display:flex;gap:6px;align-items:flex-end;height:90px;margin-top:6px}
+.funnel div{flex:1;background:var(--verde);border-radius:6px 6px 0 0;position:relative;min-height:3px}
+.funnel span{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:12px;font-weight:700}
+.fl{display:flex;gap:6px}.fl div{flex:1;text-align:center;font-size:11px;color:var(--muted)}
+</style>
+{% endblock %}
+{% block body %}
+<main>
+  <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+    <h1 style="font-size:24px">Panel del negocio</h1>
+    <span class="muted" id="now"></span>
+    <span class="chip" style="margin-left:auto">Modelo: {{ settings.agent_model }}</span>
+    <span class="chip">{{ 'WhatsApp Cloud API conectada' if settings.whatsapp_enabled else 'Modo simulador' }}</span>
+  </div>
+
+  <div id="handoffs"></div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid2">
+    <section class="card sec"><h3>Conversaciones</h3><div class="scroll"><table id="contacts"></table></div></section>
+    <section class="card sec"><h3>Cola de seguimiento <span class="chip">el cliente responde → se cancela solo</span></h3>
+      <div class="scroll"><table id="followups"></table></div></section>
+  </div>
+
+  <div class="grid2">
+    <section class="card sec"><h3>Registro de consentimiento RGPD <span class="chip">inmutable · art. 7.1</span></h3>
+      <div class="scroll"><table id="consent"></table></div></section>
+    <section class="card sec"><h3>Citas y señales</h3><div class="scroll"><table id="appts"></table></div></section>
+  </div>
+
+  <section class="card sec"><h3>Auditoría del agente <span class="chip">cada decisión y herramienta, trazada</span></h3>
+    <div class="scroll"><table id="runs"></table></div></section>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+const tok=new URLSearchParams(location.search).get('token');const H=tok?{'x-senda-token':tok}:{};
+const esc=s=>(s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fdt=d=>d?new Date(d).toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'}):'—';
+const eur=v=>Number(v||0).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+const who=r=>esc(r.display_name||('+'+r.wa_id));
+const STC={granted:'ok',requested:'warn',revoked:'bad',denied:'bad',unknown:''};
+function kpi(l,v,s,cls=''){return `<div class="card kpi ${cls}"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s||''}</div></div>`}
+async function load(){
+  const d=await (await fetch('/api/dashboard',{headers:H})).json(); const k=d.kpis;
+  $('#now').textContent='Hora del sistema: '+fdt(d.now);
+  $('#kpis').innerHTML=
+    kpi('Ahorro vs. bot de secuencia fija',eur(k.saved_vs_naive_eur),`Gastado ${eur(k.spent_eur)} · bot ingenuo ${eur(k.naive_eur)}`,'hero')+
+    kpi('Mensajes evitados',k.avoided,`${eur(k.avoided_eur)} que no se pagaron`)+
+    kpi('Leads',k.leads,`${k.inbound} mensajes entrantes · ${k.audios} audios · ${k.images} fotos`)+
+    kpi('Citas confirmadas',k.citas,k.conversion_rate!=null?`${k.conversion_rate}% de los leads`:'')+
+    kpi('Señales cobradas',eur(k.cobrado),`${k.pagados} pagadas · ${k.pendientes} pendientes`)+
+    kpi('Consentimiento',k.consent_rate!=null?k.consent_rate+'%':'—',`${k.consent_granted} aceptan · ${k.opted_out} BAJA`)+
+    kpi('Envíos salientes',k.outbound,`${k.free_msgs} gratis (ventana) · ${k.paid_msgs} plantillas de pago`)+
+    kpi('Ejecuciones del agente',k.runs,`${k.avg_ms?Math.round(k.avg_ms/100)/10+' s de media':''}${k.errors?' · '+k.errors+' errores':''}`);
+  $('#handoffs').innerHTML=d.handoffs.map(h=>`<div class="card alert" style="margin-bottom:10px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+     <b>Requiere humano · ${who(h)}</b><span class="chip bad">${esc(h.reason)}</span><span class="muted" style="flex:1;min-width:200px">${esc(h.summary)}</span>
+     <input id="hr${h.contact_id}" placeholder="Responder como equipo…" style="min-width:220px">
+     <button onclick="humanReply(${h.contact_id})">Enviar</button><button class="primary" onclick="resume(${h.contact_id})">Devolver al agente</button></div>`).join('');
+  $('#contacts').innerHTML='<tr><th>Cliente</th><th>Consentimiento</th><th>Etapa</th><th>Memoria</th><th>Último msj.</th><th></th></tr>'+
+    d.contacts.map(c=>`<tr><td><b>${who(c)}</b><div class="muted" style="font-size:11px">${c.channel} · ${c.n_msgs} msjs</div></td>
+      <td><span class="chip ${STC[c.consent_state]||''}">${c.consent_state}</span></td>
+      <td><span class="chip">${c.stage}</span>${c.status!=='active'?` <span class="chip bad">${c.status}</span>`:''}</td>
+      <td style="font-size:12px">${c.facts?Object.entries(c.facts).map(([a,b])=>`<div><b>${esc(a)}</b>: ${esc(b)}</div>`).join(''):'<span class="muted">—</span>'}</td>
+      <td>${fdt(c.last_inbound_at)}</td>
+      <td style="white-space:nowrap"><a href="/api/contacts/${c.id}/export${tok?'?token='+tok:''}" target="_blank" title="Derecho de acceso (art. 15)">Exportar</a> ·
+        <a href="#" onclick="return erase(${c.id})" title="Derecho de supresión (art. 17)">Borrar</a></td></tr>`).join('');
+  const FS={scheduled:'warn',sent:'ok',cancelled:'',skipped:'',running:'gold'};
+  $('#followups').innerHTML='<tr><th>Cliente</th><th>Secuencia</th><th>Cuándo</th><th>Estado</th><th>Resultado</th></tr>'+
+    d.followups.map(f=>`<tr><td>${who(f)}</td><td>${esc(f.sequence)} #${f.step}<div class="muted" style="font-size:11px">${esc(f.reason).slice(0,80)}</div></td>
+      <td>${fdt(f.due_at)}</td><td><span class="chip ${FS[f.status]||''}">${f.status}</span></td><td style="font-size:12px">${esc(f.outcome||'')}</td></tr>`).join('');
+  $('#consent').innerHTML='<tr><th>Fecha</th><th>Cliente</th><th>Evento</th><th>Evidencia literal</th><th>Base jurídica</th></tr>'+
+    d.consent_log.map(e=>`<tr><td>${fdt(e.created_at)}</td><td>${who(e)}</td><td class="ev-${e.event}"><b>${e.event}</b></td>
+      <td style="font-size:12px">${esc((e.evidence_text||'').slice(0,90))}</td><td style="font-size:11px">${esc(e.legal_basis)}<br><span class="muted">${esc(e.policy_version)}</span></td></tr>`).join('');
+  $('#appts').innerHTML='<tr><th>Cliente</th><th>Servicio</th><th>Fecha</th><th>Señal</th><th>Calendario</th></tr>'+
+    d.appointments.map(a=>`<tr><td>${who(a)}</td><td>${esc(a.service)}</td><td>${fdt(a.start_at)}</td>
+      <td>${a.pago?`<span class="chip ${a.pago==='paid'?'ok':'warn'}">${a.pago}</span>`:'—'}</td><td>${a.gcal?'Google Calendar':'local'}${a.status!=='confirmed'?' · '+a.status:''}</td></tr>`).join('');
+  $('#runs').innerHTML='<tr><th>Fecha</th><th>Cliente</th><th>Disparador</th><th>Herramientas</th><th>Latencia</th></tr>'+
+    d.runs.map(r=>`<tr><td>${fdt(r.created_at)}</td><td>+${esc(r.wa_id)}</td><td>${r.trigger}</td>
+      <td>${(r.tool_calls||[]).map(t=>`<span class="tool" title="${esc(JSON.stringify(t.args))} → ${esc(JSON.stringify(t.result)).slice(0,300)}">${esc(t.tool)}</span>`).join('')||'<span class="muted">—</span>'}
+      ${r.error?`<div class="chip bad">${esc(r.error).slice(0,120)}</div>`:''}</td><td>${r.latency_ms?(r.latency_ms/1000).toFixed(1)+' s':''}</td></tr>`).join('');
+}
+async function humanReply(id){const t=document.getElementById('hr'+id).value;if(!t)return;const fd=new FormData();fd.append('text',t);await fetch(`/api/contacts/${id}/human_reply`,{method:'POST',body:fd,headers:H});load()}
+async function resume(id){await fetch(`/api/contacts/${id}/resume`,{method:'POST',headers:H});load()}
+async function erase(id){if(confirm('Suprimir todos los datos de este cliente (art. 17)?')){await fetch(`/api/contacts/${id}`,{method:'DELETE',headers:H});load()}return false}
+load();setInterval(load,4000);
+</script>
+{% endblock %}

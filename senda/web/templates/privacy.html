@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Privacidad · Senda{% endblock %}
+{% block body %}
+<main style="max-width:760px;margin:28px auto;padding:0 16px">
+<div class="card">
+<h1 style="font-size:24px;margin-bottom:12px">Información sobre protección de datos</h1>
+<p><b>Responsable:</b> {{ business.name }}, {{ business.address }}.</p>
+<p><b>Qué hacemos y con qué base:</b></p>
+<ul>
+  <li>Responder a tus consultas por WhatsApp y gestionar tu cita: medidas precontractuales solicitadas por ti (art. 6.1.b RGPD).</li>
+  <li>{{ purpose }}: solo con tu consentimiento (art. 6.1.a), que pedimos de forma explícita y puedes retirar en cualquier momento escribiendo <b>BAJA</b>.</li>
+</ul>
+<p><b>Qué guardamos:</b> los mensajes, y datos útiles para atenderte (nombre, disponibilidad, preferencia de contacto). No guardamos datos de salud en la memoria de seguimiento.</p>
+<p><b>Cuánto tiempo:</b> la memoria de la conversación se borra a los {{ settings.retention_days }} días sin actividad, o en el momento en que escribes BAJA. Conservamos únicamente el registro de consentimiento como prueba (art. 7.1).</p>
+<p><b>Proveedores:</b> WhatsApp (Meta Platforms Ireland) como canal; Meta Model API para comprender y redactar mensajes; alojamiento en la UE.</p>
+<p><b>Tus derechos:</b> acceso, rectificación, supresión, oposición, limitación y portabilidad. Escríbenos por WhatsApp o en recepción. Puedes reclamar ante la AEPD (aepd.es).</p>
+<p class="muted" style="font-size:12px">Versión de la política: {{ settings.consent_policy_version }} · Texto orientativo para demo; debe revisarlo el DPO/asesor de la clínica.</p>
+</div>
+</main>
+{% endblock %}

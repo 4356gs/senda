@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Senda{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --verde:#4A8A78; --azul:#35688A; --dorado:#C9A84C;
+  --bg:#F5F7F6; --surface:#FFFFFF; --ink:#18242B; --muted:#5E6E76; --line:#E2E8E6;
+  --ok:#2E7D5B; --warn:#B7791F; --bad:#B23A3A; --chip:#EEF3F1;
+  --wa-bg:#EFEAE2; --wa-out:#D9FDD3; --wa-in:#FFFFFF;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1518; --surface:#172025; --ink:#E7EEF0; --muted:#97A7AE; --line:#26343A; --chip:#1F2B30;
+    --wa-bg:#0B141A; --wa-out:#005C4B; --wa-in:#202C33;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Plus Jakarta Sans",system-ui,sans-serif}
+h1,h2,h3{font-family:Lora,Georgia,serif;font-weight:600;margin:0}
+a{color:var(--azul)}
+.top{display:flex;align-items:center;gap:16px;padding:14px 24px;background:var(--surface);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--verde),var(--azul));position:relative}
+.logo:after{content:"";position:absolute;inset:8px 6px 8px 6px;border-bottom:3px solid var(--dorado);border-radius:0 0 50% 50%}
+.top nav{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.top nav a{padding:6px 12px;border-radius:999px;text-decoration:none;color:var(--muted);font-weight:600}
+.top nav a.on{background:var(--chip);color:var(--ink)}
+.chip{display:inline-block;padding:2px 9px;border-radius:999px;background:var(--chip);font-size:12px;font-weight:600;white-space:nowrap}
+.chip.ok{color:var(--ok)} .chip.warn{color:var(--warn)} .chip.bad{color:var(--bad)} .chip.gold{color:var(--dorado)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.muted{color:var(--muted)}
+button,.btn{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  padding:8px 14px;border-radius:10px;cursor:pointer}
+button.primary{background:var(--verde);border-color:var(--verde);color:#fff}
+button.blue{background:var(--azul);border-color:var(--azul);color:#fff}
+button:disabled{opacity:.5;cursor:default}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--muted);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.scroll{overflow-x:auto}
+input,textarea,select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+</style>
+{% block head %}{% endblock %}
+</head>
+<body>
+<header class="top">
+  <div class="brand"><div class="logo"></div><div><h2 style="font-size:19px">Senda</h2>
+  <div class="muted" style="font-size:12px">{{ business.name }} · agente de WhatsApp RGPD by design</div></div></div>
+  <nav>
+    <a href="/dashboard" class="{% block nav_dash %}{% endblock %}">Panel</a>
+    <a href="/simulador" class="{% block nav_sim %}{% endblock %}">Simulador WhatsApp</a>
+    <a href="/privacidad">Privacidad</a>
+  </nav>
+</header>
+{% block body %}{% endblock %}
+</body>
+</html>

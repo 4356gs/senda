@@ -1,0 +1,48 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: senda
+      POSTGRES_PASSWORD: senda
+      POSTGRES_DB: senda
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"   # 5433 en el host para no chocar con un Postgres local
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U senda -d senda"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://senda:senda@db:5432/senda
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./config:/app/config:ro
+      - ./secrets:/app/secrets:ro
+    restart: unless-stopped
+
+  worker:
+    build: .
+    command: ["python", "-m", "senda.worker"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://senda:senda@db:5432/senda
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./config:/app/config:ro
+      - ./secrets:/app/secrets:ro
+    restart: unless-stopped
+
+volumes:
+  pgdata:

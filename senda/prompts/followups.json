@@ -1,0 +1,42 @@
+{
+  "sin_respuesta": {
+    "category": "marketing",
+    "description": "El cliente preguntó pero dejó de responder sin reservar.",
+    "steps": [
+      {"after_hours": 24, "goal": "Retomar con naturalidad lo que preguntó y ofrecer 2 huecos concretos. Sin presión."},
+      {"after_hours": 72, "goal": "Aportar un dato útil (precio, financiación, primera visita gratis) que responda a su posible duda u objeción."},
+      {"after_hours": 168, "goal": "Último mensaje: dejar la puerta abierta, recordar que puede escribir cuando quiera. Sin más seguimiento."}
+    ]
+  },
+  "presupuesto_sin_cita": {
+    "category": "marketing",
+    "description": "Recibió precio/presupuesto y no reservó.",
+    "steps": [
+      {"after_hours": 24, "goal": "Preguntar si le surgió alguna duda con el presupuesto y ofrecer resolverla."},
+      {"after_hours": 96, "goal": "Responder a su objeción concreta si la conocemos (precio -> financiación; miedo -> primera visita sin compromiso)."},
+      {"after_hours": 240, "goal": "Cierre amable: la oferta sigue en pie; si no es buen momento, no volveremos a escribir."}
+    ]
+  },
+  "pago_pendiente": {
+    "category": "utility",
+    "description": "Reservó pero no ha pagado la señal.",
+    "steps": [
+      {"after_hours": 20, "goal": "Recordar el enlace de pago de la señal con tono humano, mencionando la cita y su día de cobro si lo dijo."},
+      {"after_hours": 44, "goal": "Avisar de que la reserva se libera si no se confirma la señal antes de 24 h antes de la cita; ofrecer cambiar de día."}
+    ]
+  },
+  "recordatorio_cita": {
+    "category": "utility",
+    "description": "Recordatorio de cita 24 h antes.",
+    "steps": [
+      {"before_appointment_hours": 24, "goal": "Recordar la cita (día, hora, dirección) y pedir que confirme o avise si no puede venir."}
+    ]
+  },
+  "personalizado": {
+    "category": "marketing",
+    "description": "Seguimiento programado por el agente en una fecha concreta (p. ej. 'cobro el 15').",
+    "steps": [
+      {"after_hours": 0, "goal": "Retomar exactamente lo acordado en la nota."}
+    ]
+  }
+}
